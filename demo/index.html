@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>do-web-secret Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #e0e0e0;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 15px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-encode {
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      color: white;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-encode:hover {
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+    }
+
+    .btn-decode {
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      color: white;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-decode:hover {
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    }
+
+    .result-section {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .result-section h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .result-box {
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      word-break: break-all;
+      min-height: 44px;
+      color: #34d399;
+      line-height: 1.6;
+    }
+
+    .result-box.error {
+      color: #fb7185;
+    }
+
+    .result-box.empty {
+      color: #6b7280;
+      font-style: italic;
+    }
+
+    .test-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .test-section h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .test-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .test-item .label {
+      color: #9ca3af;
+    }
+
+    .test-item .value {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #f1f5f9;
+    }
+
+    .test-item .status {
+      font-weight: 600;
+    }
+
+    .test-item .status.pass {
+      color: #34d399;
+    }
+
+    .test-item .status.fail {
+      color: #fb7185;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>do-web-secret</h1>
+      <p>AES/ECB/PKCS5Padding 加密解密 · 兼容 Java 后端</p>
+    </div>
+
+    <div class="form-group">
+      <label>密钥 (Secret Key)</label>
+      <input type="text" id="secretKey" value="1234567890654321" placeholder="16 位密钥">
+    </div>
+
+    <div class="form-group">
+      <label>输入内容</label>
+      <textarea id="inputText" placeholder="输入需要加密或解密的内容">18669285188</textarea>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-encode" onclick="handleEncode()">加密 Encode</button>
+      <button class="btn btn-decode" onclick="handleDecode()">解密 Decode</button>
+    </div>
+
+    <div class="result-section">
+      <h3>输出结果</h3>
+      <div class="result-box empty" id="resultBox">等待操作...</div>
+    </div>
+
+    <div class="test-section">
+      <h3>兼容性验证</h3>
+      <div id="testResults"></div>
+    </div>
+  </div>
+
+  <script src="/dist/index.global.js"></script>
+  <script>
+    var encode = DoWebSecret.encode;
+    var decode = DoWebSecret.decode;
+    var createSecret = DoWebSecret.createSecret;
+
+    function handleEncode() {
+      var input = document.getElementById('inputText').value;
+      var key = document.getElementById('secretKey').value;
+      var resultBox = document.getElementById('resultBox');
+
+      if (!input) {
+        resultBox.textContent = '请输入内容';
+        resultBox.className = 'result-box error';
+        return;
+      }
+
+      var result = encode(input, { key: key });
+      if (result) {
+        resultBox.textContent = result;
+        resultBox.className = 'result-box';
+      } else {
+        resultBox.textContent = '加密失败';
+        resultBox.className = 'result-box error';
+      }
+    }
+
+    function handleDecode() {
+      var input = document.getElementById('inputText').value;
+      var key = document.getElementById('secretKey').value;
+      var resultBox = document.getElementById('resultBox');
+
+      if (!input) {
+        resultBox.textContent = '请输入内容';
+        resultBox.className = 'result-box error';
+        return;
+      }
+
+      var result = decode(input, { key: key });
+      if (result) {
+        resultBox.textContent = result;
+        resultBox.className = 'result-box';
+      } else {
+        resultBox.textContent = '解密失败，请检查密文和密钥是否正确';
+        resultBox.className = 'result-box error';
+      }
+    }
+
+    function runTests() {
+      var container = document.getElementById('testResults');
+      var KEY = '1234567890654321';
+      var plain = '18669285188';
+      var expectedCipher = 'YqPcO7nHh3EmotCw6dzdqw==';
+
+      var encrypted = encode(plain, { key: KEY });
+      var decrypted = decode(expectedCipher, { key: KEY });
+      var roundTrip = decode(encrypted, { key: KEY });
+
+      var tests = [
+        {
+          label: '加密 "18669285188"',
+          value: encrypted,
+          pass: encrypted === expectedCipher,
+        },
+        {
+          label: '解密 "YqPcO7nHh3...=="',
+          value: decrypted,
+          pass: decrypted === plain,
+        },
+        {
+          label: '加密 → 解密 往返',
+          value: roundTrip,
+          pass: roundTrip === plain,
+        },
+      ];
+
+      container.innerHTML = tests
+        .map(function (t) {
+          return (
+            '<div class="test-item">' +
+            '<span class="label">' + t.label + '</span>' +
+            '<span class="value">' + t.value + '</span>' +
+            '<span class="status ' + (t.pass ? 'pass' : 'fail') + '">' +
+            (t.pass ? 'PASS' : 'FAIL') +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+
+    runTests();
+  </script>
+</body>
+</html>

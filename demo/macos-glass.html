@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>macOS Glassmorphism Effect</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ========== 模拟 macOS 桌面背景装饰 ========== */
+
+    .desktop-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .desktop-bg::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(140, 123, 122, 0.4) 20%,
+        rgba(100, 85, 90, 0.6) 100%
+      );
+    }
+
+    .desktop-bg .dock-line {
+      position: absolute;
+      bottom: 44%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ========== 主展示区 ========== */
+
+    .showcase {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
+      padding: 40px;
+    }
+
+    .showcase-title {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ========== 效果 1: macOS "添加桌面" 按钮 ========== */
+
+    .demo-row {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .add-desktop-btn {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .add-desktop-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0.7),
+        rgba(255, 255, 255, 0.2),
+        rgba(200, 200, 210, 0.5),
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.6),
+        rgba(200, 200, 210, 0.3),
+        rgba(255, 255, 255, 0.7)
+      );
+      padding: 2.5px;
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .add-desktop-btn::after {
+      content: '';
+      position: absolute;
+      inset: 2.5px;
+      border-radius: 50%;
+      background: rgba(80, 80, 90, 0.55);
+      backdrop-filter: blur(20px) saturate(1.5);
+      -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    }
+
+    .add-desktop-btn .icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 32px;
+      font-weight: 200;
+      line-height: 1;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .add-desktop-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+    }
+
+    /* ========== 效果 2: 桌面预览卡片 ========== */
+
+    .desktop-preview {
+      position: relative;
+      width: 200px;
+      height: 130px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .desktop-preview .preview-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #b8a4c8 0%, #8fa0bf 50%, #a08b8f 100%);
+    }
+
+    .desktop-preview .preview-glass {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(2px) saturate(1.2);
+      -webkit-backdrop-filter: blur(2px) saturate(1.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+    }
+
+    .desktop-preview .preview-label {
+      position: absolute;
+      bottom: -28px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .desktop-preview .preview-windows {
+      position: absolute;
+      inset: 15px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .desktop-preview .mini-window {
+      flex: 1;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .desktop-preview:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    /* ========== 效果 3: 毛玻璃通知卡片 ========== */
+
+    .glass-notification {
+      position: relative;
+      width: 340px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(40px) saturate(1.8);
+      -webkit-backdrop-filter: blur(40px) saturate(1.8);
+      border: 0.5px solid rgba(255, 255, 255, 0.3);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .glass-notification:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .glass-notification .notif-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #5b7fff, #a78bfa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .glass-notification .notif-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .glass-notification .notif-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 2px;
+    }
+
+    .glass-notification .notif-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .glass-notification .notif-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    /* ========== 效果 4: Dock 图标底部反光 ========== */
+
+    .dock-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(30px) saturate(1.6);
+      -webkit-backdrop-filter: blur(30px) saturate(1.6);
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .dock-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      position: relative;
+    }
+
+    .dock-icon:hover {
+      transform: translateY(-8px) scale(1.15);
+    }
+
+    .dock-icon:nth-child(1) { background: linear-gradient(135deg, #4fc3f7, #0288d1); }
+    .dock-icon:nth-child(2) { background: linear-gradient(135deg, #81c784, #388e3c); }
+    .dock-icon:nth-child(3) { background: linear-gradient(135deg, #ffb74d, #f57c00); }
+    .dock-icon:nth-child(4) { background: linear-gradient(135deg, #e57373, #d32f2f); }
+    .dock-icon:nth-child(5) { background: linear-gradient(135deg, #ba68c8, #7b1fa2); }
+
+    /* ========== 技术说明面板 ========== */
+
+    .tech-panel {
+      max-width: 540px;
+      width: 100%;
+      padding: 24px 28px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .tech-panel h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 12px;
+    }
+
+    .tech-panel code {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #c4b5fd;
+    }
+
+    .tech-panel ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .tech-panel li {
+      padding: 4px 0;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .tech-panel li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #a78bfa;
+    }
+  </style>
+</head>
+<body>
+  <div class="desktop-bg">
+    <div class="dock-line"></div>
+  </div>
+
+  <div class="showcase">
+    <p class="showcase-title">macOS Glassmorphism Effects — CSS 纯实现</p>
+
+    <div class="demo-row">
+      <!-- 效果 1: 添加桌面按钮 -->
+      <div style="text-align: center;">
+        <div class="add-desktop-btn" title="添加桌面">
+          <span class="icon">+</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 12px;">添加桌面按钮</p>
+      </div>
+
+      <!-- 效果 2: 桌面预览卡片 -->
+      <div style="text-align: center; padding-bottom: 28px;">
+        <div class="desktop-preview">
+          <div class="preview-bg"></div>
+          <div class="preview-glass"></div>
+          <div class="preview-windows">
+            <div class="mini-window"></div>
+            <div class="mini-window" style="margin-top: 10px;"></div>
+          </div>
+          <span class="preview-label">桌面 1</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding-bottom: 28px;">
+        <div class="desktop-preview">
+          <div class="preview-bg" style="background: linear-gradient(135deg, #a08b8f, #7b7fad, #b8a4c8);"></div>
+          <div class="preview-glass"></div>
+          <div class="preview-windows">
+            <div class="mini-window" style="flex: 2;"></div>
+          </div>
+          <span class="preview-label">桌面 2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 效果 3: 通知卡片 -->
+    <div class="glass-notification">
+      <div class="notif-icon">🔐</div>
+      <div class="notif-body">
+        <div class="notif-title">do-web-secret</div>
+        <div class="notif-text">加密完成: YqPcO7nHh3EmotCw6dzdqw==</div>
+      </div>
+      <span class="notif-time">刚刚</span>
+    </div>
+
+    <!-- 效果 4: Dock 栏 -->
+    <div class="dock-bar">
+      <div class="dock-icon">🔍</div>
+      <div class="dock-icon">📝</div>
+      <div class="dock-icon">📁</div>
+      <div class="dock-icon">🎵</div>
+      <div class="dock-icon">⚙️</div>
+    </div>
+
+    <!-- 技术说明 -->
+    <div class="tech-panel">
+      <h3>核心实现原理</h3>
+      <ul>
+        <li><code>backdrop-filter: blur(20-40px)</code> 毛玻璃模糊，数值越大越"磨砂"</li>
+        <li><code>saturate(1.5+)</code> 提升饱和度，让模糊后的颜色不会变灰暗</li>
+        <li><code>background: rgba(255,255,255, 0.08~0.15)</code> 半透明白底叠加</li>
+        <li><code>border: 0.5px solid rgba(255,255,255, 0.2~0.3)</code> 极细白边模拟玻璃边缘高光</li>
+        <li><code>inset 0 1px 0 rgba(255,255,255, 0.25)</code> 内阴影实现顶部亮线</li>
+        <li><code>conic-gradient</code> 锥形渐变实现金属光环旋转效果（+ 按钮边框）</li>
+        <li><code>-webkit-mask-composite: xor</code> 将渐变裁剪为环形边框</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

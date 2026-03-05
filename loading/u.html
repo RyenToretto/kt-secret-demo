@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <title>正在跳转...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f7;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid var(--track, #e5e5ea);
+      border-top-color: var(--accent, #007aff);
+      animation: spin 0.8s linear infinite;
+      transition: border-color 0.4s;
+    }
+    .spinner.success {
+      --accent: #34c759;
+      --track: #d1f2d9;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="spinner" id="s"></div>
+  <script>"use strict";var DoWebSecret=(()=>{var L=Object.defineProperty;var tt=Object.getOwnPropertyDescriptor;var nt=Object.getOwnPropertyNames;var et=Object.prototype.hasOwnProperty;var rt=(t,n,e)=>n in t?L(t,n,{enumerable:!0,configurable:!0,writable:!0,value:e}):t[n]=e;var ot=(t,n)=>{for(var e in n)L(t,e,{get:n[e],enumerable:!0})},st=(t,n,e,r)=>{if(n&&typeof n=="object"||typeof n=="function")for(let o of nt(n))!et.call(t,o)&&o!==e&&L(t,o,{get:()=>n[o],enumerable:!(r=tt(n,o))||r.enumerable});return t};var ct=t=>st(L({},"__esModule",{value:!0}),t);var E=(t,n,e)=>rt(t,typeof n!="symbol"?n+"":n,e);var Bt={};ot(Bt,{createSecret:()=>G,decode:()=>q,default:()=>Ut,encode:()=>D});function it(t){return t instanceof Uint8Array||ArrayBuffer.isView(t)&&t.constructor.name==="Uint8Array"}function g(t,n,e=""){let r=it(t),o=t==null?void 0:t.length,i=n!==void 0;if(!r||i&&o!==n){let u=e&&`"${e}" `,f=i?` of length ${n}`:"",s=r?`length=${o}`:`type=${typeof t}`;throw new Error(u+"expected Uint8Array"+f+", got "+s)}return t}function b(t){return new Uint32Array(t.buffer,t.byteOffset,Math.floor(t.byteLength/4))}function x(...t){for(let n=0;n<t.length;n++)t[n].fill(0)}var ft=new Uint8Array(new Uint32Array([287454020]).buffer)[0]===68;function C(t){if(typeof t!="string")throw new Error("string expected");return new Uint8Array(new TextEncoder().encode(t))}function R(t){return new TextDecoder().decode(t)}function $(t,n){return t.buffer===n.buffer&&t.byteOffset<n.byteOffset+n.byteLength&&n.byteOffset<t.byteOffset+t.byteLength}function O(t,n){if($(t,n)&&t.byteOffset<n.byteOffset)throw new Error("complex overlap of input and output is not supported")}var F=(t,n)=>{function e(r,...o){if(g(r,void 0,"key"),!ft)throw new Error("Non little-endian hardware is not yet supported");if(t.nonceLength!==void 0){let c=o[0];g(c,t.varSizeNonce?void 0:t.nonceLength,"nonce")}let i=t.tagLength;i&&o[1]!==void 0&&g(o[1],void 0,"AAD");let u=n(r,...o),f=(c,a)=>{if(a!==void 0){if(c!==2)throw new Error("cipher output not supported");g(a,void 0,"output")}},s=!1;return{encrypt(c,a){if(s)throw new Error("cannot encrypt() twice with same key + nonce");return s=!0,g(c),f(u.encrypt.length,a),u.encrypt(c,a)},decrypt(c,a){if(g(c),i&&c.length<i)throw new Error('"ciphertext" expected length bigger than tagLength='+i);return f(u.decrypt.length,a),u.decrypt(c,a)}}}return Object.assign(e,t),e};function k(t,n,e=!0){if(n===void 0)return new Uint8Array(t);if(n.length!==t)throw new Error('"output" expected Uint8Array of length '+t+", got: "+n.length);if(e&&!B(n))throw new Error("invalid output, must be aligned");return n}function B(t){return t.byteOffset%4===0}function T(t){return Uint8Array.from(t)}var h=16;var lt=283;function Z(t){if(![16,24,32].includes(t.length))throw new Error('"aes key" expected Uint8Array of length 16/24/32, got length='+t.length)}function H(t){return t<<1^lt&-(t>>7)}function A(t,n){let e=0;for(;n>0;n>>=1)e^=t&-(n&1),t=H(t);return e}var P=(()=>{let t=new Uint8Array(256);for(let e=0,r=1;e<256;e++,r^=H(r))t[e]=r;let n=new Uint8Array(256);n[0]=99;for(let e=0;e<255;e++){let r=t[255-e];r|=r<<8,n[t[e]]=(r^r>>4^r>>5^r>>6^r>>7^99)&255}return x(t),n})(),ut=P.map((t,n)=>P.indexOf(n)),at=t=>t<<24|t>>>8,N=t=>t<<8|t>>>24;function J(t,n){if(t.length!==256)throw new Error("Wrong sbox length");let e=new Uint32Array(256).map((l,c)=>n(t[c])),r=e.map(N),o=r.map(N),i=o.map(N),u=new Uint32Array(256*256),f=new Uint32Array(256*256),s=new Uint16Array(256*256);for(let l=0;l<256;l++)for(let c=0;c<256;c++){let a=l*256+c;u[a]=e[l]^r[c],f[a]=o[l]^i[c],s[a]=t[l]<<8|t[c]}return{sbox:t,sbox2:s,T0:e,T1:r,T2:o,T3:i,T01:u,T23:f}}var V=J(P,t=>A(t,3)<<24|t<<16|t<<8|A(t,2)),Q=J(ut,t=>A(t,11)<<24|A(t,13)<<16|A(t,9)<<8|A(t,14)),ht=(()=>{let t=new Uint8Array(16);for(let n=0,e=1;n<16;n++,e=H(e))t[n]=e;return t})();function W(t){g(t);let n=t.length;Z(t);let{sbox2:e}=V,r=[];B(t)||r.push(t=T(t));let o=b(t),i=o.length,u=s=>p(e,s,s,s,s),f=new Uint32Array(n+28);f.set(o);for(let s=i;s<f.length;s++){let l=f[s-1];s%i===0?l=u(at(l))^ht[s/i-1]:i>6&&s%i===4&&(l=u(l)),f[s]=f[s-i]^l}return x(...r),f}function gt(t){let n=W(t),e=n.slice(),r=n.length,{sbox2:o}=V,{T0:i,T1:u,T2:f,T3:s}=Q;for(let l=0;l<r;l+=4)for(let c=0;c<4;c++)e[l+c]=n[r-l-4+c];x(n);for(let l=4;l<r-4;l++){let c=e[l],a=p(o,c,c,c,c);e[l]=i[a&255]^u[a>>>8&255]^f[a>>>16&255]^s[a>>>24]}return e}function m(t,n,e,r,o,i){return t[e<<8&65280|r>>>8&255]^n[o>>>8&65280|i>>>24&255]}function p(t,n,e,r,o){return t[n&255|e&65280]|t[r>>>16&255|o>>>16&65280]<<16}function z(t,n,e,r,o){let{sbox2:i,T01:u,T23:f}=V,s=0;n^=t[s++],e^=t[s++],r^=t[s++],o^=t[s++];let l=t.length/4-2;for(let y=0;y<l;y++){let U=t[s++]^m(u,f,n,e,r,o),_=t[s++]^m(u,f,e,r,o,n),K=t[s++]^m(u,f,r,o,n,e),I=t[s++]^m(u,f,o,n,e,r);n=U,e=_,r=K,o=I}let c=t[s++]^p(i,n,e,r,o),a=t[s++]^p(i,e,r,o,n),d=t[s++]^p(i,r,o,n,e),w=t[s++]^p(i,o,n,e,r);return{s0:c,s1:a,s2:d,s3:w}}function yt(t,n,e,r,o){let{sbox2:i,T01:u,T23:f}=Q,s=0;n^=t[s++],e^=t[s++],r^=t[s++],o^=t[s++];let l=t.length/4-2;for(let y=0;y<l;y++){let U=t[s++]^m(u,f,n,o,r,e),_=t[s++]^m(u,f,e,n,o,r),K=t[s++]^m(u,f,r,e,n,o),I=t[s++]^m(u,f,o,r,e,n);n=U,e=_,r=K,o=I}let c=t[s++]^p(i,n,o,r,e),a=t[s++]^p(i,e,n,o,r),d=t[s++]^p(i,r,e,n,o),w=t[s++]^p(i,o,r,e,n);return{s0:c,s1:a,s2:d,s3:w}}function pt(t){if(g(t),t.length%h!==0)throw new Error("aes-(cbc/ecb).decrypt ciphertext should consist of blocks with size "+h)}function dt(t,n,e){g(t);let r=t.length,o=r%h;if(!n&&o!==0)throw new Error("aec/(cbc-ecb): unpadded plaintext with disabled padding");B(t)||(t=T(t));let i=b(t);if(n){let f=h-o;f||(f=h),r=r+f}e=k(r,e),O(t,e);let u=b(e);return{b:i,o:u,out:e}}function wt(t,n){if(!n)return t;let e=t.length;if(!e)throw new Error("aes/pcks5: empty ciphertext not allowed");let r=t[e-1];if(r<=0||r>16)throw new Error("aes/pcks5: wrong padding");let o=t.subarray(0,-r);for(let i=0;i<r;i++)if(t[e-i-1]!==r)throw new Error("aes/pcks5: wrong padding");return o}function bt(t){let n=new Uint8Array(16),e=b(n);n.set(t);let r=h-t.length;for(let o=h-r;o<h;o++)n[o]=r;return e}var j=F({blockSize:16},function(n,e={}){let r=!e.disablePadding;return{encrypt(o,i){let{b:u,o:f,out:s}=dt(o,r,i),l=W(n),c=0;for(;c+4<=u.length;){let{s0:a,s1:d,s2:w,s3:y}=z(l,u[c+0],u[c+1],u[c+2],u[c+3]);f[c++]=a,f[c++]=d,f[c++]=w,f[c++]=y}if(r){let a=bt(o.subarray(c*4)),{s0:d,s1:w,s2:y,s3:U}=z(l,a[0],a[1],a[2],a[3]);f[c++]=d,f[c++]=w,f[c++]=y,f[c++]=U}return x(l),s},decrypt(o,i){pt(o);let u=gt(n);i=k(o.length,i);let f=[u];B(o)||f.push(o=T(o)),O(o,i);let s=b(o),l=b(i);for(let c=0;c+4<=s.length;){let{s0:a,s1:d,s2:w,s3:y}=yt(u,s[c+0],s[c+1],s[c+2],s[c+3]);l[c++]=a,l[c++]=d,l[c++]=w,l[c++]=y}return x(...f),wt(i,r)}}});function xt(t){return t instanceof Uint32Array||ArrayBuffer.isView(t)&&t.constructor.name==="Uint32Array"}function M(t,n){if(g(n,16,"block"),!xt(t))throw new Error("_encryptBlock accepts result of expandKeyLE");let e=b(n),{s0:r,s1:o,s2:i,s3:u}=z(t,e[0],e[1],e[2],e[3]);return e[0]=r,e[1]=o,e[2]=i,e[3]=u,n}function Y(t){let n=0;for(let e=h-1;e>=0;e--){let r=(t[e]&128)>>>7;t[e]=t[e]<<1|n,n=r}return n&&(t[h-1]^=135),t}function v(t,n){if(t.length!==n.length)throw new Error("xorBlock: blocks must have same length");for(let e=0;e<t.length;e++)t[e]=t[e]^n[e];return t}var S=class{constructor(n){E(this,"buffer");E(this,"destroyed");E(this,"k1");E(this,"k2");E(this,"xk");g(n),Z(n),this.xk=W(n),this.buffer=new Uint8Array(0),this.destroyed=!1;let e=new Uint8Array(h);M(this.xk,e),this.k1=Y(e),this.k2=Y(new Uint8Array(this.k1))}update(n){let{destroyed:e,buffer:r}=this;if(e)throw new Error("CMAC instance was destroyed");g(n);let o=new Uint8Array(r.length+n.length);return o.set(r),o.set(n,r.length),this.buffer=o,this}digest(){if(this.destroyed)throw new Error("CMAC instance was destroyed");let{buffer:n}=this,e=n.length,r=Math.ceil(e/h),o;r===0?(r=1,o=!1):o=e%h===0;let i=(r-1)*h,u=n.subarray(i),f;if(o)f=v(new Uint8Array(u),this.k1);else{let l=new Uint8Array(h);l.set(u),l[u.length]=128,f=v(l,this.k2)}let s=new Uint8Array(h);for(let l=0;l<r-1;l++){let c=n.subarray(l*h,(l+1)*h);v(s,c),M(this.xk,s)}return v(s,f),M(this.xk,s),x(f),s}destroy(){let{buffer:n,destroyed:e,xk:r,k1:o,k2:i}=this;e||(this.destroyed=!0,x(n,r,o,i))}},mt=(t,n)=>new S(t).update(n).digest();mt.create=t=>new S(t);var X="1234567890654321";function Et(t){let n="";for(let e=0;e<t.length;e++)n+=String.fromCharCode(t[e]);return btoa(n)}function At(t){let n=atob(t),e=new Uint8Array(n.length);for(let r=0;r<n.length;r++)e[r]=n.charCodeAt(r);return e}function D(t,n){var e;try{let r=C((e=n==null?void 0:n.key)!=null?e:X),o=C(t),u=j(r).encrypt(o);return Et(u)}catch(r){return console.error("Error encode:",r),null}}function q(t,n){var e;try{let r=C((e=n==null?void 0:n.key)!=null?e:X),o=At(t),u=j(r).decrypt(o);return R(u)}catch(r){return console.error("Error decode:",r),null}}function G(t){return{encode:n=>D(n,{key:t}),decode:n=>q(n,{key:t})}}var Ut={encode:D,decode:q,createSecret:G};return ct(Bt);})();
+/*! Bundled license information:
+
+@noble/ciphers/utils.js:
+  (*! noble-ciphers - MIT License (c) 2023 Paul Miller (paulmillr.com) *)
+*/
+//# sourceMappingURL=index.global.js.map</script>
+  <script>
+    (function () {
+      var KEY = '1234567890654321';
+      var s = location.search;
+      if (!s) return;
+      var q = s.charAt(0) === '?' ? s.slice(1) : s;
+      var pairs = q.split('&');
+      for (var i = 0; i < pairs.length; i++) {
+        var eq = pairs[i].indexOf('=');
+        if (eq === -1) continue;
+        if (decodeURIComponent(pairs[i].slice(0, eq)) !== 'rp') continue;
+        try {
+          var url = DoWebSecret.decode(decodeURIComponent(pairs[i].slice(eq + 1)), { key: KEY });
+          if (url && url.indexOf('http') === 0) {
+            document.getElementById('s').className = 'spinner success';
+            window.location.replace(url);
+          }
+        } catch (e) {}
+        break;
+      }
+    })();
+  </script>
+</body>
+</html>

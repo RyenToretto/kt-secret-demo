@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liquid Glass — Apple WWDC 2025 风格演示</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      overflow-x: hidden;
+      background: #1a1a2e;
+    }
+
+    /* ========== 背景场景 ========== */
+
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: url('./bg.png') center / cover no-repeat;
+    }
+
+    .scene-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+
+    .scene-orb:nth-child(1) {
+      width: 300px; height: 300px;
+      background: rgba(147, 51, 234, 0.3);
+      top: 10%; left: 15%;
+      animation-delay: 0s;
+    }
+
+    .scene-orb:nth-child(2) {
+      width: 250px; height: 250px;
+      background: rgba(59, 130, 246, 0.25);
+      top: 50%; right: 10%;
+      animation-delay: -4s;
+    }
+
+    .scene-orb:nth-child(3) {
+      width: 200px; height: 200px;
+      background: rgba(236, 72, 153, 0.2);
+      bottom: 15%; left: 40%;
+      animation-delay: -8s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    /* ========== 布局 ========== */
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .page-header h1 {
+      font-size: 40px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c084fc, #60a5fa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.5);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #a78bfa;
+      margin-bottom: 16px;
+      padding: 4px 10px;
+      background: rgba(167, 139, 250, 0.1);
+      border-radius: 6px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* ========== SVG 滤镜 (隐藏) ========== */
+
+    .svg-filters {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* ========== 液态玻璃核心样式 ========== */
+
+    .liquid-glass {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .liquid-glass:hover {
+      transform: translateY(-2px);
+    }
+
+    .liquid-glass-filter {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      backdrop-filter: url(#liquid-refract) blur(12px) saturate(1.6);
+      -webkit-backdrop-filter: url(#liquid-refract) blur(12px) saturate(1.6);
+    }
+
+    .liquid-glass-filter-fallback {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      backdrop-filter: blur(16px) saturate(1.6);
+      -webkit-backdrop-filter: blur(16px) saturate(1.6);
+    }
+
+    .liquid-glass-tint {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .liquid-glass-specular {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      border-radius: inherit;
+      border: 0.5px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    .liquid-glass-specular::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+    }
+
+    .liquid-glass-content {
+      position: relative;
+      z-index: 3;
+    }
+
+    /* ========== Demo 1: 导航栏 ========== */
+
+    .demo-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .demo-navbar .liquid-glass-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      width: 100%;
+    }
+
+    .navbar-brand {
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .navbar-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .navbar-links a {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .navbar-links a:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ========== Demo 2: 卡片组 ========== */
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .demo-card {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .demo-card .liquid-glass-content {
+      padding: 28px 24px;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .card-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      backdrop-filter: blur(8px) saturate(1.4);
+      -webkit-backdrop-filter: blur(8px) saturate(1.4);
+      background: rgba(255, 255, 255, 0.08);
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      z-index: -1;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      line-height: 1.6;
+    }
+
+    /* ========== Demo 3: 音乐播放器 ========== */
+
+    .demo-player {
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-player .liquid-glass-content {
+      padding: 24px;
+    }
+
+    .player-art {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(147, 51, 234, 0.6), rgba(59, 130, 246, 0.6)),
+        linear-gradient(45deg, #1a1a2e, #16213e);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .player-art::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.3) 100%);
+    }
+
+    .player-info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .player-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 4px;
+    }
+
+    .player-artist {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .player-progress {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .player-progress-bar {
+      width: 35%;
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .player-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 20px;
+      cursor: pointer;
+      transition: color 0.2s, transform 0.15s;
+      padding: 0;
+    }
+
+    .player-btn:hover {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .player-btn:active {
+      transform: scale(0.9);
+    }
+
+    .player-btn-play {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      position: relative;
+    }
+
+    .player-btn-play::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* ========== Demo 4: + 按钮（你截图里的那个） ========== */
+
+    .demo-buttons-row {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .liquid-add-btn {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+    }
+
+    .liquid-add-btn .btn-refract {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      backdrop-filter: url(#liquid-refract-btn) blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: url(#liquid-refract-btn) blur(14px) saturate(1.4);
+      z-index: 0;
+    }
+
+    .liquid-add-btn .btn-refract-fallback {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      backdrop-filter: blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      background: rgba(80, 80, 100, 0.45);
+      z-index: 0;
+    }
+
+    .liquid-add-btn .btn-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      z-index: 1;
+      background: conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0.65),
+        rgba(255, 255, 255, 0.15),
+        rgba(200, 200, 220, 0.45),
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.55),
+        rgba(200, 200, 220, 0.25),
+        rgba(255, 255, 255, 0.65)
+      );
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      padding: 2.5px;
+    }
+
+    .liquid-add-btn .btn-specular {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      z-index: 2;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+    }
+
+    .liquid-add-btn .btn-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 30px;
+      font-weight: 200;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+    }
+
+    .liquid-add-btn:hover {
+      transform: scale(1.12);
+    }
+
+    .liquid-pill-btn {
+      position: relative;
+      height: 44px;
+      padding: 0 28px;
+      border-radius: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .liquid-pill-btn .pill-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      backdrop-filter: blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      background: rgba(255, 255, 255, 0.08);
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      z-index: 0;
+    }
+
+    .liquid-pill-btn .pill-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    }
+
+    .liquid-pill-btn span {
+      position: relative;
+      z-index: 1;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .liquid-pill-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* ========== Demo 5: 对比展示 ========== */
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .compare-row { grid-template-columns: 1fr; }
+    }
+
+    .compare-item {
+      padding: 28px 24px;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .compare-item-glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px) saturate(1.5);
+      -webkit-backdrop-filter: blur(20px) saturate(1.5);
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .compare-item-liquid {
+      overflow: hidden;
+    }
+
+    .compare-item-liquid .lq-filter {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      backdrop-filter: url(#liquid-refract-card) blur(14px) saturate(1.6);
+      -webkit-backdrop-filter: url(#liquid-refract-card) blur(14px) saturate(1.6);
+    }
+
+    .compare-item-liquid .lq-filter-fallback {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      backdrop-filter: blur(14px) saturate(1.6);
+      -webkit-backdrop-filter: blur(14px) saturate(1.6);
+    }
+
+    .compare-item-liquid .lq-tint {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .compare-item-liquid .lq-specular {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      border-radius: 20px;
+      border: 0.5px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.25),
+        inset 0 -0.5px 1px rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    .compare-item-liquid .lq-specular::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 8%;
+      right: 8%;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        rgba(255, 255, 255, 0.7),
+        rgba(255, 255, 255, 0.5),
+        transparent
+      );
+    }
+
+    .compare-item-liquid .lq-content {
+      position: relative;
+      z-index: 3;
+    }
+
+    .compare-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+
+    .compare-tag-old {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .compare-tag-new {
+      background: rgba(167, 139, 250, 0.2);
+      color: #c4b5fd;
+    }
+
+    .compare-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 10px;
+    }
+
+    .compare-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      line-height: 1.7;
+    }
+
+    .compare-text code {
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11.5px;
+      color: #c4b5fd;
+    }
+
+    /* ========== 技术原理面板 ========== */
+
+    .tech-panel {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .tech-panel .liquid-glass-content {
+      padding: 32px 28px;
+    }
+
+    .tech-panel h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 20px;
+    }
+
+    .tech-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tech-layer {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.15);
+      border: 0.5px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .tech-layer-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .tech-layer-body h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 4px;
+    }
+
+    .tech-layer-body p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      line-height: 1.6;
+    }
+
+    .tech-layer-body code {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.07);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: #c4b5fd;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG 滤镜定义 -->
+  <svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
+    <!-- 液态折射滤镜: 用 feTurbulence 生成噪声 → feGaussianBlur 平滑 → feDisplacementMap 折射位移 -->
+    <filter id="liquid-refract" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.015" numOctaves="3" seed="2" result="noise" />
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth-noise" />
+      <feDisplacementMap in="SourceGraphic" in2="smooth-noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+
+    <filter id="liquid-refract-card" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.012" numOctaves="2" seed="5" result="noise" />
+      <feGaussianBlur in="noise" stdDeviation="4" result="smooth-noise" />
+      <feDisplacementMap in="SourceGraphic" in2="smooth-noise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+
+    <filter id="liquid-refract-btn" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.02" numOctaves="2" seed="8" result="noise" />
+      <feGaussianBlur in="noise" stdDeviation="2" result="smooth-noise" />
+      <feDisplacementMap in="SourceGraphic" in2="smooth-noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <!-- 背景光斑 -->
+  <div class="scene">
+    <div class="scene-orb"></div>
+    <div class="scene-orb"></div>
+    <div class="scene-orb"></div>
+  </div>
+
+  <div class="page">
+    <header class="page-header">
+      <h1>Liquid Glass</h1>
+      <p>Apple WWDC 2025 发布的全新设计语言——液态玻璃。
+        不只是毛玻璃模糊，而是带有光线折射、镜面高光和流体质感的真实玻璃模拟。</p>
+    </header>
+
+    <!-- Demo 1: 导航栏 -->
+    <section class="section">
+      <span class="section-label">Demo 1</span>
+      <h2 class="section-title">导航栏 — Safari 风格</h2>
+      <p class="section-desc">macOS Tahoe 中 Safari 地址栏变为浮动的液态玻璃层，自动拾取页面主色调。</p>
+      <div class="liquid-glass demo-navbar" style="border-radius: 16px;">
+        <div class="liquid-glass-filter-fallback"></div>
+        <div class="liquid-glass-tint"></div>
+        <div class="liquid-glass-specular"></div>
+        <div class="liquid-glass-content">
+          <div class="navbar-brand">🌐 Safari</div>
+          <div class="navbar-links">
+            <a href="javascript:void(0)">收藏</a>
+            <a href="javascript:void(0)">历史</a>
+            <a href="javascript:void(0)">标签页</a>
+            <a href="javascript:void(0)">扩展</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 2: 卡片 -->
+    <section class="section">
+      <span class="section-label">Demo 2</span>
+      <h2 class="section-title">功能卡片</h2>
+      <p class="section-desc">控制中心和小组件采用液态玻璃，内容透过玻璃层折射后略微扭曲，产生深度感。</p>
+      <div class="card-grid">
+        <div class="liquid-glass demo-card">
+          <div class="liquid-glass-filter-fallback"></div>
+          <div class="liquid-glass-tint"></div>
+          <div class="liquid-glass-specular"></div>
+          <div class="liquid-glass-content">
+            <div class="card-icon">🔐</div>
+            <div class="card-title">AES 加密</div>
+            <div class="card-text">AES/ECB/PKCS5Padding 对称加密，前后端完全兼容。</div>
+          </div>
+        </div>
+        <div class="liquid-glass demo-card">
+          <div class="liquid-glass-filter-fallback"></div>
+          <div class="liquid-glass-tint"></div>
+          <div class="liquid-glass-specular"></div>
+          <div class="liquid-glass-content">
+            <div class="card-icon">🔓</div>
+            <div class="card-title">AES 解密</div>
+            <div class="card-text">Base64 密文一键还原明文，毫秒级解密。</div>
+          </div>
+        </div>
+        <div class="liquid-glass demo-card">
+          <div class="liquid-glass-filter-fallback"></div>
+          <div class="liquid-glass-tint"></div>
+          <div class="liquid-glass-specular"></div>
+          <div class="liquid-glass-content">
+            <div class="card-icon">🏭</div>
+            <div class="card-title">工厂模式</div>
+            <div class="card-text">createSecret 绑定固定密钥，调用更简洁。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 3: 音乐播放器 -->
+    <section class="section">
+      <span class="section-label">Demo 3</span>
+      <h2 class="section-title">音乐播放器 — Apple Music 风格</h2>
+      <p class="section-desc">Apple Music 在 macOS 26 中重新设计，播放控件浮在专辑封面上方的液态玻璃层里。</p>
+      <div class="liquid-glass demo-player">
+        <div class="liquid-glass-filter-fallback"></div>
+        <div class="liquid-glass-tint"></div>
+        <div class="liquid-glass-specular"></div>
+        <div class="liquid-glass-content">
+          <div class="player-art">🎵</div>
+          <div class="player-info">
+            <div class="player-title">Blinding Lights</div>
+            <div class="player-artist">The Weeknd</div>
+          </div>
+          <div class="player-progress"><div class="player-progress-bar"></div></div>
+          <div class="player-controls">
+            <button class="player-btn">⏮</button>
+            <button class="player-btn player-btn-play">▶</button>
+            <button class="player-btn">⏭</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 4: 按钮 -->
+    <section class="section">
+      <span class="section-label">Demo 4</span>
+      <h2 class="section-title">按钮与控件</h2>
+      <p class="section-desc">macOS Mission Control 的"添加桌面"按钮使用 conic-gradient 实现金属光环 + 毛玻璃内填充。</p>
+      <div class="demo-buttons-row">
+        <div style="text-align: center;">
+          <div class="liquid-add-btn">
+            <div class="btn-refract-fallback"></div>
+            <div class="btn-ring"></div>
+            <div class="btn-specular"></div>
+            <span class="btn-icon">+</span>
+          </div>
+          <p style="color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 12px;">添加桌面</p>
+        </div>
+
+        <div class="liquid-pill-btn">
+          <div class="pill-bg"></div>
+          <span>🔒 加密</span>
+        </div>
+
+        <div class="liquid-pill-btn">
+          <div class="pill-bg"></div>
+          <span>🔓 解密</span>
+        </div>
+
+        <div class="liquid-pill-btn">
+          <div class="pill-bg"></div>
+          <span>⚙️ 设置</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo 5: 对比 -->
+    <section class="section">
+      <span class="section-label">Demo 5</span>
+      <h2 class="section-title">Glassmorphism vs Liquid Glass</h2>
+      <p class="section-desc">左为传统毛玻璃 (2020)，右为液态玻璃 (2025)。核心区别在于折射层和镜面高光。</p>
+      <div class="compare-row">
+        <div class="compare-item compare-item-glass">
+          <span class="compare-tag compare-tag-old">Glassmorphism</span>
+          <div class="compare-title">传统毛玻璃</div>
+          <div class="compare-text">
+            仅 <code>backdrop-filter: blur()</code> + 半透明背景 + 边框。
+            视觉上是平面的，没有深度和光学效果。
+          </div>
+        </div>
+        <div class="compare-item compare-item-liquid">
+          <div class="lq-filter-fallback"></div>
+          <div class="lq-tint"></div>
+          <div class="lq-specular"></div>
+          <div class="lq-content">
+            <span class="compare-tag compare-tag-new">Liquid Glass</span>
+            <div class="compare-title">液态玻璃</div>
+            <div class="compare-text">
+              SVG <code>feDisplacementMap</code> 折射 + 多层高光 + <code>inset box-shadow</code>。
+              模拟真实曲面玻璃的光线弯曲与边缘反射。
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 技术原理 -->
+    <section class="section">
+      <span class="section-label">原理</span>
+      <h2 class="section-title">四层架构</h2>
+      <p class="section-desc">Liquid Glass 的 CSS 实现基于四层叠加，每层负责一个光学特性。</p>
+      <div class="liquid-glass tech-panel">
+        <div class="liquid-glass-filter-fallback"></div>
+        <div class="liquid-glass-tint"></div>
+        <div class="liquid-glass-specular"></div>
+        <div class="liquid-glass-content">
+          <h3>Liquid Glass = 折射 + 色调 + 高光 + 内容</h3>
+          <div class="tech-layers">
+            <div class="tech-layer">
+              <div class="tech-layer-num">1</div>
+              <div class="tech-layer-body">
+                <h4>折射层 (Refraction)</h4>
+                <p>SVG <code>feTurbulence</code> 生成噪声 → <code>feGaussianBlur</code> 平滑 → <code>feDisplacementMap</code> 位移背景像素，模拟光线穿过曲面玻璃时的弯曲。通过 <code>backdrop-filter: url(#filter)</code> 应用。仅 Chrome 完整支持，其他浏览器降级为纯 blur。</p>
+              </div>
+            </div>
+            <div class="tech-layer">
+              <div class="tech-layer-num">2</div>
+              <div class="tech-layer-body">
+                <h4>色调层 (Tint)</h4>
+                <p><code>background: rgba(255,255,255, 0.05~0.1)</code> 半透明白色叠加，让玻璃有微微的"体积感"，同时自动拾取背景色调（Apple 称为 Adaptive Tinting）。</p>
+              </div>
+            </div>
+            <div class="tech-layer">
+              <div class="tech-layer-num">3</div>
+              <div class="tech-layer-body">
+                <h4>镜面高光层 (Specular)</h4>
+                <p><code>inset 0 1.5px 1px rgba(255,255,255,0.25)</code> 内阴影模拟顶部亮线。<code>border: 0.5px solid rgba(255,255,255,0.25)</code> 模拟玻璃边缘高光。顶部用 <code>::before</code> 伪元素绘制集中的水平高光条。</p>
+              </div>
+            </div>
+            <div class="tech-layer">
+              <div class="tech-layer-num">4</div>
+              <div class="tech-layer-body">
+                <h4>内容层 (Content)</h4>
+                <p>实际的文字、图标等 UI 内容，<code>z-index</code> 置于最顶层。Apple 的设计哲学：内容永远是主角，液态玻璃只是"让路"的容器。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    var isChrome = /Chrome/.test(navigator.userAgent) && !/Edge|Edg/.test(navigator.userAgent);
+
+    if (isChrome) {
+      document.querySelectorAll('.liquid-glass-filter-fallback').forEach(function(el) {
+        el.className = 'liquid-glass-filter';
+      });
+      document.querySelectorAll('.btn-refract-fallback').forEach(function(el) {
+        el.className = 'btn-refract';
+      });
+      document.querySelectorAll('.lq-filter-fallback').forEach(function(el) {
+        el.className = 'lq-filter';
+        el.style.backdropFilter = 'url(#liquid-refract-card) blur(14px) saturate(1.6)';
+        el.style.webkitBackdropFilter = 'url(#liquid-refract-card) blur(14px) saturate(1.6)';
+      });
+    }
+  </script>
+</body>
+</html>

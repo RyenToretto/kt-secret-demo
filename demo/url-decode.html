@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL 参数解密工具 — do-web-secret</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #e0e0e0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 6px;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    .row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .row .col { flex: 1; min-width: 0; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.15s;
+      color: white;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45); }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.7);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .params-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .params-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .params-table td {
+      padding: 10px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: top;
+    }
+
+    .params-table tr:last-child td { border-bottom: none; }
+
+    .param-key {
+      color: #60a5fa;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .param-value {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: rgba(255, 255, 255, 0.7);
+      word-break: break-all;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .param-decrypt-btn {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(167, 139, 250, 0.15);
+      color: #c4b5fd;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .param-decrypt-btn:hover { background: rgba(167, 139, 250, 0.25); }
+
+    .decrypt-result {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .decrypt-result-success {
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      color: #34d399;
+    }
+
+    .decrypt-result-error {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.15);
+      color: #fb7185;
+    }
+
+    .url-parts {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .url-parts .part-label {
+      display: inline-block;
+      min-width: 72px;
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 600;
+    }
+
+    .url-parts .part-value {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: rgba(255, 255, 255, 0.75);
+      word-break: break-all;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 20px;
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 13px;
+    }
+
+    .hidden { display: none; }
+
+    .batch-results {
+      margin-top: 16px;
+    }
+
+    .batch-item {
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.12);
+      margin-bottom: 10px;
+    }
+
+    .batch-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .batch-item-key {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #60a5fa;
+    }
+
+    .batch-item-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .batch-item-status-ok {
+      background: rgba(52, 211, 153, 0.12);
+      color: #34d399;
+    }
+
+    .batch-item-status-fail {
+      background: rgba(251, 113, 133, 0.12);
+      color: #fb7185;
+    }
+
+    .batch-item-cipher {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      word-break: break-all;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .batch-item-plain {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #34d399;
+      word-break: break-all;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .batch-item-error {
+      font-size: 12px;
+      color: #fb7185;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>URL 参数解密工具</h1>
+      <p>粘贴完整 URL，自动解析参数并用 AES/ECB 解密</p>
+    </div>
+
+    <!-- 输入区 -->
+    <div class="card">
+      <div class="card-title">输入</div>
+      <label>完整 URL</label>
+      <textarea id="urlInput" placeholder="粘贴完整 URL，例如：https://example.com/page?rp=YqPcO7nHh3EmotCw6dzdqw=="></textarea>
+      <div class="row" style="margin-top: 14px;">
+        <div class="col">
+          <label>密钥 (Secret Key)</label>
+          <input type="text" id="secretKey" value="1234567890654321" placeholder="16 位密钥">
+        </div>
+        <div class="col">
+          <label>指定参数名 (可选，留空解密全部)</label>
+          <input type="text" id="paramFilter" placeholder="例如：rp">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="handleParse()">解析并解密</button>
+        <button class="btn btn-secondary" onclick="handleClear()">清空</button>
+        <button class="btn btn-secondary" onclick="loadExample()">加载示例</button>
+      </div>
+    </div>
+
+    <!-- URL 解析结果 -->
+    <div class="card hidden" id="parseResult">
+      <div class="card-title">URL 解析</div>
+      <div class="url-parts" id="urlParts"></div>
+    </div>
+
+    <!-- 参数列表 -->
+    <div class="card hidden" id="paramsCard">
+      <div class="card-title">参数列表</div>
+      <table class="params-table">
+        <thead>
+          <tr>
+            <th>参数名</th>
+            <th>原始值</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="paramsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 批量解密结果 -->
+    <div class="card hidden" id="decryptCard">
+      <div class="card-title">解密结果</div>
+      <div id="decryptResults" class="batch-results"></div>
+    </div>
+  </div>
+
+  <script src="/dist/index.global.js"></script>
+  <script>
+    var decode = DoWebSecret.decode;
+    var encode = DoWebSecret.encode;
+
+    /**
+     * 手动解析 URL query string，保留 Base64 中的 + 号
+     * URLSearchParams 会将 + 解码为空格，导致 Base64 损坏
+     */
+    function parseQueryString(queryString) {
+      if (!queryString) return {};
+      if (queryString.startsWith('?')) queryString = queryString.slice(1);
+      var params = {};
+      var pairs = queryString.split('&');
+      for (var i = 0; i < pairs.length; i++) {
+        var eqIdx = pairs[i].indexOf('=');
+        if (eqIdx === -1) {
+          params[decodeURIComponent(pairs[i])] = '';
+        } else {
+          var key = decodeURIComponent(pairs[i].slice(0, eqIdx));
+          var value = decodeURIComponent(pairs[i].slice(eqIdx + 1));
+          params[key] = value;
+        }
+      }
+      return params;
+    }
+
+    function parseUrl(urlStr) {
+      try {
+        var url = new URL(urlStr);
+        return {
+          protocol: url.protocol,
+          host: url.host,
+          pathname: url.pathname,
+          search: url.search,
+          params: parseQueryString(url.search)
+        };
+      } catch (e) {
+        if (urlStr.indexOf('?') !== -1) {
+          var parts = urlStr.split('?');
+          return {
+            protocol: '',
+            host: '',
+            pathname: parts[0],
+            search: '?' + parts[1],
+            params: parseQueryString(parts[1])
+          };
+        }
+        return null;
+      }
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function tryFormatJson(str) {
+      try {
+        var obj = JSON.parse(str);
+        return JSON.stringify(obj, null, 2);
+      } catch (e) {
+        return str;
+      }
+    }
+
+    function handleParse() {
+      var urlStr = document.getElementById('urlInput').value.trim();
+      var key = document.getElementById('secretKey').value.trim();
+      var filterParam = document.getElementById('paramFilter').value.trim();
+
+      if (!urlStr) return;
+
+      var parsed = parseUrl(urlStr);
+      if (!parsed) return;
+
+      // URL 解析展示
+      var partsEl = document.getElementById('urlParts');
+      var partsHtml = '';
+      if (parsed.protocol) {
+        partsHtml += '<div><span class="part-label">协议</span><span class="part-value">' + escapeHtml(parsed.protocol) + '</span></div>';
+      }
+      if (parsed.host) {
+        partsHtml += '<div><span class="part-label">主机</span><span class="part-value">' + escapeHtml(parsed.host) + '</span></div>';
+      }
+      partsHtml += '<div><span class="part-label">路径</span><span class="part-value">' + escapeHtml(parsed.pathname) + '</span></div>';
+      partsHtml += '<div><span class="part-label">参数数量</span><span class="part-value">' + Object.keys(parsed.params).length + '</span></div>';
+      partsEl.innerHTML = partsHtml;
+      document.getElementById('parseResult').classList.remove('hidden');
+
+      // 参数列表
+      var params = parsed.params;
+      var paramKeys = Object.keys(params);
+      var paramsBody = document.getElementById('paramsBody');
+
+      if (paramKeys.length === 0) {
+        paramsBody.innerHTML = '<tr><td colspan="3"><div class="empty-state">该 URL 没有查询参数</div></td></tr>';
+        document.getElementById('paramsCard').classList.remove('hidden');
+        document.getElementById('decryptCard').classList.add('hidden');
+        return;
+      }
+
+      var tableHtml = '';
+      paramKeys.forEach(function (k) {
+        var v = params[k];
+        var displayValue = v.length > 80 ? v.slice(0, 80) + '...' : v;
+        tableHtml += '<tr>' +
+          '<td class="param-key">' + escapeHtml(k) + '</td>' +
+          '<td class="param-value">' + escapeHtml(displayValue) + '</td>' +
+          '<td><button class="param-decrypt-btn" onclick="decryptSingle(\'' + escapeHtml(k) + '\')">解密</button></td>' +
+          '</tr>';
+      });
+      paramsBody.innerHTML = tableHtml;
+      document.getElementById('paramsCard').classList.remove('hidden');
+
+      // 批量解密
+      var targetKeys = filterParam
+        ? paramKeys.filter(function (k) { return k === filterParam; })
+        : paramKeys;
+
+      var resultsHtml = '';
+      targetKeys.forEach(function (k) {
+        var cipherText = params[k];
+        var plain = decode(cipherText, { key: key });
+        var formatted = plain ? tryFormatJson(plain) : null;
+
+        resultsHtml += '<div class="batch-item">' +
+          '<div class="batch-item-header">' +
+            '<span class="batch-item-key">' + escapeHtml(k) + '</span>' +
+            '<span class="batch-item-status ' + (plain ? 'batch-item-status-ok' : 'batch-item-status-fail') + '">' +
+              (plain ? 'OK' : 'FAIL') +
+            '</span>' +
+          '</div>' +
+          '<div class="batch-item-cipher">' + escapeHtml(cipherText) + '</div>';
+
+        if (plain) {
+          resultsHtml += '<div class="batch-item-plain">' + escapeHtml(formatted) + '</div>';
+        } else {
+          resultsHtml += '<div class="batch-item-error">解密失败 — 密钥不匹配或非 AES/ECB 密文</div>';
+        }
+        resultsHtml += '</div>';
+      });
+
+      document.getElementById('decryptResults').innerHTML = resultsHtml;
+      document.getElementById('decryptCard').classList.remove('hidden');
+    }
+
+    function decryptSingle(paramKey) {
+      var urlStr = document.getElementById('urlInput').value.trim();
+      var key = document.getElementById('secretKey').value.trim();
+      var parsed = parseUrl(urlStr);
+      if (!parsed) return;
+
+      var cipherText = parsed.params[paramKey];
+      if (!cipherText) return;
+
+      document.getElementById('paramFilter').value = paramKey;
+
+      var plain = decode(cipherText, { key: key });
+      var formatted = plain ? tryFormatJson(plain) : null;
+
+      var resultsHtml = '<div class="batch-item">' +
+        '<div class="batch-item-header">' +
+          '<span class="batch-item-key">' + escapeHtml(paramKey) + '</span>' +
+          '<span class="batch-item-status ' + (plain ? 'batch-item-status-ok' : 'batch-item-status-fail') + '">' +
+            (plain ? 'OK' : 'FAIL') +
+          '</span>' +
+        '</div>' +
+        '<div class="batch-item-cipher">' + escapeHtml(cipherText) + '</div>';
+
+      if (plain) {
+        resultsHtml += '<div class="batch-item-plain">' + escapeHtml(formatted) + '</div>';
+      } else {
+        resultsHtml += '<div class="batch-item-error">解密失败 — 密钥不匹配或非 AES/ECB 密文</div>';
+      }
+      resultsHtml += '</div>';
+
+      document.getElementById('decryptResults').innerHTML = resultsHtml;
+      document.getElementById('decryptCard').classList.remove('hidden');
+    }
+
+    function handleClear() {
+      document.getElementById('urlInput').value = '';
+      document.getElementById('paramFilter').value = '';
+      document.getElementById('parseResult').classList.add('hidden');
+      document.getElementById('paramsCard').classList.add('hidden');
+      document.getElementById('decryptCard').classList.add('hidden');
+    }
+
+    function loadExample() {
+      document.getElementById('urlInput').value =
+        'https://p.novelsf.com/future.html?rp=Kx64j7TAzRrHQOJ6MhQsRTYIVQmySbsK3P7mwsknIa%2B%2BAT9hiyo8%2FHFVLk7J4CZ4y9SuWM9ALJZW0xRN9KbhoCsvaNJpl%2Fp41ttLd7ePL4iEKQjH6%2Bc%2FaYasIMMipIOY9924L8ClDa%2BNAgvOa9tqTRonrMFh9BBbw%2BkiYrEDw1k%3D';
+      handleParse();
+    }
+
+    // 如果当前页面 URL 本身带参数，自动填入
+    if (window.location.search) {
+      var fullUrl = window.location.href;
+      document.getElementById('urlInput').value = fullUrl;
+      handleParse();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "name": "do-web-secret",
+  "version": "1.0.0",
+  "description": "AES/ECB/PKCS5Padding 前端加密解密库，兼容 Java 后端",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "npx serve .",
+    "build": "tsup",
+    "build:loading": "tsup && node scripts/build-loading.mjs",
+    "dev": "tsup --watch",
+    "test": "node test/verify.mjs",
+    "demo": "npx serve ."
+  },
+  "keywords": [
+    "aes",
+    "ecb",
+    "encrypt",
+    "decrypt",
+    "pkcs5",
+    "pkcs7",
+    "crypto"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^2.1.1"
+  }
+}
