@@ -32,25 +32,21 @@
 </head>
 <body>
   <div class="spinner" id="s"></div>
-  <!-- __KT_SECRET_INLINE__ -->
   <script>
     (function () {
-      var KEY = '1234567890654321';
-      var s = location.search;
-      if (!s) return;
-      var q = s.charAt(0) === '?' ? s.slice(1) : s;
-      var pairs = q.split('&');
+      var search = location.search;
+      if (!search) return;
+      var query = search.charAt(0) === '?' ? search.slice(1) : search;
+      var pairs = query.split('&');
       for (var i = 0; i < pairs.length; i++) {
         var eq = pairs[i].indexOf('=');
         if (eq === -1) continue;
-        if (decodeURIComponent(pairs[i].slice(0, eq)) !== 'rp') continue;
-        try {
-          var url = DoWebSecret.decode(decodeURIComponent(pairs[i].slice(eq + 1)), { key: KEY });
-          if (url && url.indexOf('http') === 0) {
-            document.getElementById('s').className = 'spinner success';
-            window.location.replace(url);
-          }
-        } catch (e) {}
+        if (decodeURIComponent(pairs[i].slice(0, eq)) !== 'or') continue;
+        var url = decodeURIComponent(pairs[i].slice(eq + 1));
+        if (url) {
+          document.getElementById('s').className = 'spinner success';
+          window.location.href = url;
+        }
         break;
       }
     })();

@@ -4,24 +4,28 @@
 - /loading/u.html 用于novelsafa支付中间跳转页，对接孙嘉辉，秦文浩。找op部署 
 - https://p.novelsf.com/u.html?rp=Kx64j7TAzRrHQOJ6MhQsRTYIVQmySbsK3P7mwsknIa%2B%2BAT9hiyo8%2FHFVLk7J4CZ4y9SuWM9ALJZW0xRN9KbhoCsvaNJpl%2Fp41ttLd7ePL4iEKQjH6%2Bc%2FaYasIMMipIOY9924L8ClDa%2BNAgvOa9tqTRonrMFh9BBbw%2BkiYrEDw1k%3D
 
-## 打包 Loading 跳转页
+## 打包部署页
 
-将 AES 解密库内联到单个 HTML 文件中，用于客户端 WebView 中间跳转页，零外部依赖。
+产物输出到 `loading/` 目录，每次打包自动清空再重新生成。
 
 ```bash
-# 默认输出 loading/u.html
+# 全量打包（推荐），同时生成 u.html + callback.html
+npm run build:all
+
+# 仅打包 loading 跳转页（AES 解密 rp 参数 → 跳转支付链接）
 npm run build:loading
 
-# 自定义文件名，输出 loading/future.html
+# 自定义 loading 文件名
 npm run build:loading -- future
 
-# 输出 loading/pay.html
-npm run build:loading -- pay
+# 仅打包 callback 回调页（解析 or 参数 → 跳转 App Deep Link）
+npm run build:callback
 ```
 
-产物在 `loading/` 目录下，每次打包会自动清空该目录再重新生成。
-
-打包流程：`tsup` 构建库 → 读取 `src/loading/u.html` 模板 → 内联 IIFE 产物 → 输出到 `loading/{name}.html`
+| 页面 | 模板 | 参数 | 功能 |
+|---|---|---|---|
+| `u.html` | `src/loading/u.html` | `rp` (AES 密文) | 解密后跳转支付链接 |
+| `callback.html` | `src/loading/callback.html` | `or` (URL 编码) | 解码后跳转 App Deep Link |
 
 ## 安装
 

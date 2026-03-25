@@ -18,7 +18,9 @@
   "scripts": {
     "start": "npx serve .",
     "build": "tsup",
-    "build:loading": "tsup && node scripts/build-loading.mjs",
+    "build:loading": "tsup && node scripts/build-loading.mjs u",
+    "build:callback": "tsup && node scripts/build-loading.mjs callback",
+    "build:all": "tsup && node scripts/build-loading.mjs u callback",
     "dev": "tsup --watch",
     "test": "node test/verify.mjs",
     "demo": "npx serve ."
